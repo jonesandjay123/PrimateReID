@@ -1,0 +1,19 @@
+# Core
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.35.0
+
+# SAM3
+segment-anything-3  # or install from HuggingFace
+
+# Image processing
+opencv-python>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# Visualization
+matplotlib>=3.7.0
+
+# Notebooks
+jupyter>=1.0.0
+ipywidgets>=8.0.0
