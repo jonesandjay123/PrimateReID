@@ -5,7 +5,7 @@ torchvision>=0.15
 # Embedding
 facenet-pytorch>=2.5
 # Image processing
-Pillow>=10.0
+Pillow>=11.0
 opencv-python>=4.8
 # Scientific computing
 numpy>=1.24
