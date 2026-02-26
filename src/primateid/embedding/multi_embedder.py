@@ -83,29 +83,30 @@ class MultiEmbedder:
         ])
 
     def _init_arcface(self) -> None:
-        """ArcFace via insightface — uses ONNX model (buffalo_l package).
+        """ArcFace via insightface — direct recognition model only.
 
-        Falls back to a ResNet100 with ArcFace-style training if insightface
-        is not installed.
+        Skips face detection/landmark entirely since our inputs are
+        already cropped faces. Feeds directly into w600k_r50.onnx
+        recognition head for fairer cross-species comparison.
         """
         try:
-            from insightface.app import FaceAnalysis
+            from insightface.model_zoo import get_model
+            from insightface.utils.storage import ensure_available
         except ImportError:
             raise ImportError(
                 "insightface is required for the 'arcface' backbone. "
                 "Install it with: pip install insightface onnxruntime"
             )
-        # Use insightface's FaceAnalysis to get the recognition model.
-        # We'll extract embeddings directly from the rec model.
         import onnxruntime  # noqa: F401 — ensure available
 
-        self._arcface_app = FaceAnalysis(
-            name="buffalo_l",
-            providers=["CPUExecutionProvider"],
-        )
-        self._arcface_app.prepare(ctx_id=-1, det_size=(160, 160))
+        # Download buffalo_l if needed, then load ONLY the recognition model
+        model_dir = ensure_available("buffalo_l")
+        import os
+        rec_path = os.path.join(model_dir, "w600k_r50.onnx")
+        self._arcface_rec = get_model(rec_path, providers=["CPUExecutionProvider"])
+        self._arcface_rec.prepare(ctx_id=-1)
 
-        # We use a lightweight wrapper as self.model so .eval()/.to() don't fail
+        # Lightweight wrapper so .eval()/.to() don't fail
         self.model = torch.nn.Identity()
         self.transform = transforms.Compose([
             transforms.Resize((112, 112)),
@@ -159,11 +160,11 @@ class MultiEmbedder:
     # ------------------------------------------------------------------
 
     def _embed_arcface(self, image_path: Path) -> np.ndarray:
-        """Get ArcFace embedding using insightface's recognition model.
+        """Get ArcFace embedding directly from recognition model.
 
-        Since insightface's FaceAnalysis expects to detect a face first,
-        and our input is already cropped faces, we feed directly into the
-        recognition model (rec_model) bypassing detection.
+        No face detection or landmark alignment — our inputs are already
+        cropped faces. This gives a fairer comparison: the recognition
+        model sees the same crop quality as other backbones.
         """
         import cv2
 
@@ -171,22 +172,12 @@ class MultiEmbedder:
         if img is None:
             raise ValueError(f"Cannot read image: {image_path}")
 
-        # Try face detection first
-        faces = self._arcface_app.get(img)
-        if faces:
-            # Use the first detected face's embedding
-            vec = faces[0].embedding
-        else:
-            # No face detected — feed the whole crop directly to rec model
-            # Resize to 112x112 as expected by ArcFace
-            img_resized = cv2.resize(img, (112, 112))
-            # insightface rec model expects (1, 3, 112, 112) float32 BGR
-            img_input = cv2.dnn.blobFromImage(
-                img_resized, 1.0 / 127.5, (112, 112),
-                (127.5, 127.5, 127.5), swapRB=True
-            )
-            rec_model = self._arcface_app.models["recognition"]
-            vec = rec_model.forward(img_input).flatten()
+        # Resize to 112x112 as expected by ArcFace recognition model
+        img_resized = cv2.resize(img, (112, 112))
+
+        # insightface rec model's .get() expects a face object with bbox,
+        # but .get_feat() accepts a pre-aligned (112,112,3) BGR numpy array
+        vec = self._arcface_rec.get_feat(img_resized).flatten()
 
         vec = vec / (np.linalg.norm(vec) + 1e-10)
         return vec
