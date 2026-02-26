@@ -10,6 +10,31 @@
 - [ ] **Define the data contract clearly**: folder-per-identity structure → auto pairs → report
 - [ ] Share the demo run results with E小姐 as proof the pipeline works
 
+## Priority A+: E小姐's Research Direction (2026-02-25)
+
+E小姐's key insight from her ML engineer discussion:
+> "model 本身有很多 layer，可以讓他用部分比較適合的 layer 剩下再去 train"
+> → **Transfer learning with partial layer freezing** — use primate-pretrained front layers, fine-tune back layers on macaque data
+
+Reference repos from E小姐:
+- [ ] **[KordingLab/PrimateFace](https://github.com/KordingLab/PrimateFace)** — Cross-species primate facial analysis ecosystem (Parodi et al. 2025)
+  - DINOv2-based features for primate faces (aligns with our best baseline!)
+  - Includes: face detection, landmark tracking, pseudo-labeling GUI
+  - Has pretrained models on HuggingFace: `fparodi/PrimateFace`
+  - **Key value**: Primate-specific DINOv2 features — can serve as our embedding backbone
+  - Requires GPU (Google Colab tutorials available)
+- [ ] **[C-Poirier-Lab/MacqD](https://github.com/C-Poirier-Lab/MacqD)** — Macaque detection model
+  - SWIN Transformer + Mask R-CNN for macaque detection in home-cage
+  - Handles occlusions, glass reflections, overexposure
+  - Three trained models (single/curriculum/combined)
+  - **Key value**: Robust macaque detector → replaces YOLO in our detection stage
+
+Suggested integration plan:
+- [ ] Use **PrimateFace's DINOv2 features** as a new backbone in our embedder (likely beats our vanilla DINOv2 0.725 AUC)
+- [ ] Use **MacqD** as detection front-end for E小姐's macaque data
+- [ ] **Partial fine-tuning**: Freeze early layers of PrimateFace model, train final layers on E小姐's specific macaque population
+- [ ] Compare: PrimateFace DINOv2 vs our vanilla DINOv2 vs fine-tuned version
+
 ## Priority B: Add Meaningful Backbones
 
 Current baselines (both near random on primate ReID):
