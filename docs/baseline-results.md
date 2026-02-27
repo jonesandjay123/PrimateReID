@@ -10,6 +10,7 @@
 | **ResNet50** | Supervised (ImageNet) | 2048 | 0.6884 | 36.3% | 0.673 | 0.624 |
 | **FaceNet** | Human faces (VGGFace2) | 512 | 0.6141 | 42.2% | 0.407 | 0.751 |
 | **ArcFace** | Human faces (MS1MV2) | 512 | 0.6400 | 40.2% | 0.507 | 0.536 |
+| **CLIP ViT-B/16** | Image-text (400M pairs) | 512 | 0.6521 | 39.4% | 0.505 | 0.900 |
 
 ### Interpretation
 
@@ -17,7 +18,8 @@
 - **Clear ranking**: Self-supervised > General supervised > Human face specialized
 - **DINOv2 wins** despite having the smallest embedding dimension (384-d). Its self-supervised training on diverse visual data produces features that generalize across species better than any supervised model.
 - **ArcFace beats FaceNet but not ResNet50**: With detection bypassed (direct crop → recognition model), ArcFace's metric learning (angular margin) helps vs FaceNet, suggesting the *training objective* matters. But it still can't beat generic ResNet50 features, confirming human-face bias hurts.
-- **The "specialization penalty"**: More human-face-specific training → worse cross-species performance. FaceNet (0.61) < ArcFace (0.64) < ResNet50 (0.69) < DINOv2 (0.73). Note: ArcFace initially scored 0.55 when using its built-in face detector (which fails on chimps); bypassing detection improved it to 0.64.
+- **CLIP underperforms**: Despite being trained on 400M image-text pairs, CLIP (0.65) ranks below ResNet50 (0.69). CLIP's visual features are optimized for matching images to text descriptions, not for fine-grained individual discrimination within a species.
+- **The "specialization penalty"**: More human-face-specific training → worse cross-species performance. FaceNet (0.61) < ArcFace (0.64) < CLIP (0.65) < ResNet50 (0.69) < DINOv2 (0.73). Note: ArcFace initially scored 0.55 when using its built-in face detector (which fails on chimps); bypassing detection improved it to 0.64.
 
 ### Key Insight
 

@@ -18,7 +18,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="PrimateReID evaluation pipeline")
     parser.add_argument("--crops", type=Path, required=True, help="Path to crops directory")
     parser.add_argument("--backbone", type=str, default="resnet50",
-                        choices=["resnet50", "facenet", "arcface", "dinov2"], help="Embedding backbone")
+                        choices=["resnet50", "facenet", "arcface", "dinov2", "clip"], help="Embedding backbone")
     parser.add_argument("--output", type=Path, default=None, help="Output directory")
     parser.add_argument("--device", type=str, default="cpu", help="Torch device")
     args = parser.parse_args()

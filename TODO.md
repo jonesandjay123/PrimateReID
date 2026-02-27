@@ -48,7 +48,7 @@ Completed baselines (4 backbones tested 2026-02-25):
 - [x] **DINOv2** (self-supervised) — AUC 0.73 ✅ ⭐ Best performer
 
 Next backbones to explore:
-- [ ] CLIP ViT-B/16 — zero-shot generalization baseline
+- [x] CLIP ViT-B/16 — AUC 0.652 (below ResNet50; vision-language features don't help individual ReID)
 - [ ] SphereFace — used in Deb et al. 2018 for lemur ReID
 - [ ] DINOv2 ViT-B/14 or ViT-L/14 — larger DINOv2 variants may improve further
 

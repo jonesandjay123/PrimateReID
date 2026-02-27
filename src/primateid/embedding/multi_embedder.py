@@ -13,7 +13,7 @@ from torchvision import transforms
 
 logger = logging.getLogger(__name__)
 
-BackboneName = Literal["resnet50", "facenet", "arcface", "dinov2"]
+BackboneName = Literal["resnet50", "facenet", "arcface", "dinov2", "clip"]
 
 
 class MultiEmbedder:
@@ -38,10 +38,12 @@ class MultiEmbedder:
             self._init_arcface()
         elif backbone == "dinov2":
             self._init_dinov2()
+        elif backbone == "clip":
+            self._init_clip()
         else:
             raise ValueError(
                 f"Unsupported backbone: {backbone!r}. "
-                "Use 'resnet50', 'facenet', 'arcface', or 'dinov2'."
+                "Use 'resnet50', 'facenet', 'arcface', 'dinov2', or 'clip'."
             )
 
         self.model.eval()
@@ -122,6 +124,21 @@ class MultiEmbedder:
             transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225]),
         ])
+
+    def _init_clip(self) -> None:
+        """CLIP ViT-B/16 from OpenAI — zero-shot visual-language model, 512-d embeddings."""
+        try:
+            import open_clip
+        except ImportError:
+            raise ImportError(
+                "open_clip_torch is required for the 'clip' backbone. "
+                "Install it with: pip install open_clip_torch"
+            )
+        model, _, preprocess = open_clip.create_model_and_transforms(
+            "ViT-B-16", pretrained="openai"
+        )
+        self.model = model.visual
+        self.transform = preprocess  # CLIP's own preprocessing
 
     # ------------------------------------------------------------------
     # Public API
