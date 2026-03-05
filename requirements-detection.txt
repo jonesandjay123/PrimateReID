@@ -1,0 +1,9 @@
+# Optional detection dependencies for PrimateReID
+# Install with: pip install -r requirements-detection.txt
+
+# YOLOv8 object detection
+ultralytics>=8.0
+
+# SAM 2.1 (Segment Anything Model 3)
+# Install from Meta's repo: https://github.com/facebookresearch/sam2
+# pip install sam-2
